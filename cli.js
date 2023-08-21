@@ -5,6 +5,7 @@ const { sqlQuery } = require('./sqlCommands')
 class CLI {
     constructor() {
       this.select = '';
+     
     }
 
 sqlPrompts() {
@@ -16,6 +17,7 @@ sqlPrompts() {
             choices:['view Departments','view Roles','view Employees','add Department','add Role','add Employee','update employee role'],
             message: 'what would you like to do?',
         },
+       
     ]
         )
       .then(( { select } ) => {

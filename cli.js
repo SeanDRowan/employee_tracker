@@ -30,7 +30,11 @@ sqlPrompts() {
         console.log(err);
         console.log('Oops. Something went wrong.');
       });
-    }}      
+    }
+
+
+
+}      
 
       module.exports = CLI;
       

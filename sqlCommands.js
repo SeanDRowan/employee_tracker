@@ -37,7 +37,7 @@ function sqlQuery(response) {
             case 'Update Employee Role':
                 updateEmployee();
             break;
-           
+          
         };}
     
         function viewDepartments(){
@@ -48,7 +48,21 @@ function sqlQuery(response) {
             })
         };
         function viewEmployees(){
-            db.query('SELECT * FROM employee', function (err, results) {
+            db.query(` SELECT A.id,
+            A.first_name,
+            A.last_name,
+            role.title AS role,
+            department.name AS department,
+            role.salary AS salary,
+            CONCAT (B.first_name, " ", B.last_name) AS manager
+            FROM employee A
+            LEFT JOIN role
+            ON A.role_id = role.id
+            LEFT JOIN department
+            ON role.department_id = department.id
+            LEFT JOIN employee B
+            ON B.id = A.manager_id;`, function (err, results) {
+                if(err){console.log(err)}
                   console.table(results)
                   restart()
               })
@@ -76,6 +90,11 @@ function sqlQuery(response) {
                         restart()})
                     })} 
              function addRole(){
+                const Departments = []
+                db.query('SELECT * FROM department', (err, rows) => {
+                    rows.forEach((department) => { Departments.push(department.name) }
+                    
+                    );})
                 return inquirer.prompt ([
                     {
                          type:'input',
@@ -89,7 +108,7 @@ function sqlQuery(response) {
                       },
                       {
                         type:'list',
-                        choices:["Sales","Development","Management","other"],
+                        choices:Departments,
                        name:'dept',
                        message:'select department for new role'
                       },
@@ -99,31 +118,35 @@ function sqlQuery(response) {
                         this.salary = salary;
                         this.dept = dept;
                         console.log(dept)
-                        switch(dept) {
-                            case 'Sales':
-                             dept_id = 1;
-                            break;case 'Development':
-                            dept_id = 2;
-                           break;case 'Management':
-                           dept_id = 3;
-                          break;case 'Other':
-                          dept_id = 4;
-                         break;}
-                        console.log(dept_id)
+
+                        let dept_id;
+                        db.query('SELECT * FROM department', (err, rows) => {
+                        rows.forEach((department) => {
+                            if (dept == department.name) {
+                                dept_id = department.id;
+                                
+                            
+                        
+                        
                         const sql = ` INSERT INTO role (title,salary,department_id) VALUES (?,?,?);`
                         const params = [newRole,salary,dept_id];
                         db.query(sql,params);
                         db.query('SELECT role.title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id;', function (err, results) {
                             console.table(results)
                         })
-
-                    
-                        
-                        //viewRoles()
+                    }})})
                         })
 
              }       
              function addEmployee(){
+                const roles = []
+                const manager = []
+                db.query('SELECT * FROM role', (err, rows) => {
+                        rows.forEach((role) => { roles.push(role.title) }
+                        );})
+                db.query('SELECT CONCAT (employee.first_name, " ", employee.last_name) AS manager FROM employee', (err, rows) => {
+                    rows.forEach((employee) => { manager.push(employee.manager) }
+                    );})
                 return inquirer.prompt ([
                     {
                          type:'input',
@@ -136,26 +159,49 @@ function sqlQuery(response) {
                        message:'enter employee last name'
                       },
                       {
-                        type:'input',
-                       name:'role',
-                       message:'enter employee role'
+                        type:'list',
+                        choices: roles,
+                       name:'role_id',
+                       message:'select employee role'
                       },
                       {
-                        type:'input',
+                        type:'list',
                        name:'manager',
-                       message:'enter manager_id'
+                        choices:manager,
+                       message:'select manager'
                       },
                     ])
-                       .then(( { firstName, lastName, role, manager } ) => {
+                       .then(( { firstName, lastName, role_id, manager } ) => {
                         this.firstName = firstName;
                         this.lastName = lastName;
-                        this.role = role;
+                        this.role_id = role_id;
                         this.manager = manager;
-                        db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES ("${firstName}","${lastName}","${role}","${manager}")`)
-                        db.query('SELECT * FROM employee', function (err, results) {
-                            console.table(results)
-                            restart()})
-                        })}   
+                        console.log(manager)
+
+                        
+                        db.query('SELECT * FROM role', (err, rows) => {
+                        rows.forEach((role) => {
+                            if (role_id == role.title) {
+                                role_id = role.id;}
+                            console.log(role_id)})
+ 
+                        db.query('SELECT employee.manager_id, CONCAT (employee.first_name, " ", employee.last_name) AS manage_id FROM employee', (err, rows) => {
+                        rows.forEach((employee) => {
+                            console.log(employee.manager_id)
+                            console.log(employee.manage_id)
+                            if (manager == employee.manage_id) {
+                                manager = employee.manager_id;
+                                console.log(manager)
+                                
+    // this is where work is happening
+    
+                        db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES ("${firstName}","${lastName}","${role_id}","${manager}")`)
+                        viewEmployees()
+                        }})})
+                        })}  )} 
+
+
+
                         function updateEmployee(){
                             return inquirer.prompt ([
                                  {

@@ -1,81 +1,35 @@
-//const db =require('./server')
-const mysql = require('mysql2');
+
 const inquirer = require('inquirer');
-
-const db = mysql.createConnection(
-    {
-      host: 'localhost',
+const db =require('./config')
+class SQL {
+    constructor() {
+      this.select = '';
+     
+    }
     
-      user: 'root',
-      
-      password: 'Srbootcamp1',
-      database: 'employees_db'
-    },
-    console.log(`Connected to the employees database.`)
-  );
-
-function sqlQuery(response) { 
-        switch(response) {
-            case 'view Departments':
-                viewDepartments();
-            break;
-            case 'view Roles':
-                viewRoles();
-            break;
-            case 'view Employees':
-                viewEmployees();
-            break;
-            case 'add Department':
-                addDepartment();
-            break;
-            case 'add Role':
-                addRole();
-            break;
-            case 'add Employee':
-                addEmployee();
-            break;
-            case 'update employee role':
-                updateEmployee();
-            break;
-            case 'Quit':
-                quit();
-            break;
-        };}
-    
-        function viewDepartments(){
+        viewDepartments(){
           db.query('SELECT id,name FROM department', function (err, results) {
                 console.table(results)
                 restart()
 
             })
         };
-        function viewEmployees(){
-            db.query(` SELECT A.id,
-            A.first_name,
-            A.last_name,
-            role.title AS role,
-            department.name AS department,
-            role.salary AS salary,
-            CONCAT (B.first_name, " ", B.last_name) AS manager
-            FROM employee A
-            LEFT JOIN role
-            ON A.role_id = role.id
-            LEFT JOIN department
-            ON role.department_id = department.id
-            LEFT JOIN employee B
-            ON B.id = A.manager_id;`, function (err, results) {
+    
+         viewEmployees(){
+            db.query(` SELECT A.id, A.first_name, A.last_name, role.title AS role, department.name AS department, role.salary AS salary, CONCAT (B.first_name, " ", B.last_name) AS manager FROM employee A
+            LEFT JOIN role ON A.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee B ON B.id = A.manager_id;`, function (err, results) {
                 if(err){console.log(err)}
                   console.table(results)
                   restart()
               })
           };
-          function viewRoles(){
+           viewRoles(){
             db.query( 'SELECT role.title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id;' , function (err, results) {
                   console.table(results)
                  restart()
               })
           };
-           function addDepartment(){
+            addDepartment(){
            return inquirer.prompt ([
                 {
                     type:'input',
@@ -91,7 +45,7 @@ function sqlQuery(response) {
                         console.table(results)
                         restart()})
                     })} 
-             function addRole(){
+              addRole(){
                 const Departments = []
                 db.query('SELECT * FROM department', (err, rows) => {
                     rows.forEach((department) => { Departments.push(department.name) }
@@ -133,14 +87,9 @@ function sqlQuery(response) {
                         const sql = ` INSERT INTO role (title,salary,department_id) VALUES (?,?,?);`
                         const params = [newRole,salary,dept_id];
                         db.query(sql,params);
-                        db.query('SELECT role.title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id;', function (err, results) {
-                            console.table(results)
-                        })
-                    }})})
-                        })
+                        this.viewRoles()  }})})})}  
 
-             }       
-             function addEmployee(){
+              addEmployee(){
                 const roles = []
                 const manager = []
                 db.query('SELECT * FROM role', (err, rows) => {
@@ -179,7 +128,7 @@ function sqlQuery(response) {
                         this.role_id = role_id;
                         this.manager = manager;
                         console.log(manager)
-                        manager_id = 0;
+                        var manager_id = 0;
                         
                         db.query('SELECT * FROM role', (err, rows) => {
                         rows.forEach((role) => {
@@ -196,11 +145,11 @@ function sqlQuery(response) {
                                 
                                 console.log(manager_id)
                            db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES ("${firstName}","${lastName}","${role_id}","${manager_id}")`)
-                        viewEmployees()
+                        this.viewEmployees()
                             })
                         })}  
                          
-                        function updateEmployee(){
+                         updateEmployee(){
                             const roles = []
                             const employeeUd = []
                             db.query('SELECT * FROM role', (err, rows) => {
@@ -244,17 +193,22 @@ function sqlQuery(response) {
                                                         }})
                                                         console.log(employees)
                                      db.query(`UPDATE employee SET role_id = ${role_id} WHERE employee.id = ${employees}`)
-                                     viewEmployees()
+                                     this.viewEmployees()
                                     })
                                          
                                          })}
-                                     
-                                     
-       function restart(){
-                  CLI = require('./cli');
-                  cli = new CLI();
-                  cli.sqlPrompts();
-       }
-    
 
-     module.exports = { sqlQuery };
+                                          quit(){db.end()}
+                                     
+                                     
+        
+    
+}
+function restart(){
+    CLI = require('./cli');
+    cli = new CLI();
+    cli.sqlPrompts();
+}
+
+     
+     module.exports = SQL;

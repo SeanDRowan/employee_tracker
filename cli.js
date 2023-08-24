@@ -7,7 +7,7 @@ class CLI {
       this.select = '';
      
     }
-
+//prompt for main menu
 sqlPrompts() {
     return inquirer
       .prompt([
@@ -22,15 +22,14 @@ sqlPrompts() {
         )
       .then(( { select } ) => {
         this.select = select;
-        //console.log(select)
        this.sqlQuery(select)
-     
-      })
+     })
       .catch((err) => {
         console.log(err);
         console.log('Oops. Something went wrong.');
       });
     }
+    // switch statement to choose function based on input from sqlPrompts
      sqlQuery(response) { 
         switch(response) {
             case 'view Departments':

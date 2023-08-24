@@ -11,6 +11,8 @@
 ### Usage
      This app allows you to manipulate a sql database using command line prompts, by following the prompts the user can view departments,roles,and employees as well as add new elements and update employee roles.
 
+     https://drive.google.com/file/d/1h7jLsXJsLEj1fDZbAQwQn00R0Ak7oMCK/view 
+
      
 ### Questions
 for additional questions, please reach out to me on github
